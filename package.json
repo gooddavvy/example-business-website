@@ -1,0 +1,10 @@
+{
+  "name": "example-business-website",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix site run build && node scripts/prepare-export.mjs",
+    "lint": "npm --prefix site run lint",
+    "dev": "npm --prefix site run dev"
+  }
+}

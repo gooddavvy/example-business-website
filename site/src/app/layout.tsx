@@ -14,6 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://ebw-demo.sundayakin-8060.chatgpt.site"),
   title: {
     default: "Example Business — Ideas, exceptionally executed",
     template: "%s | Example Business",

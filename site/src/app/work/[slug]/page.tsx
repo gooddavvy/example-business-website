@@ -58,6 +58,7 @@ const concepts = {
   },
 };
 type Slug = keyof typeof concepts;
+export const dynamicParams = false;
 function getConcept(slug: string) {
   return Object.hasOwn(concepts, slug) ? concepts[slug as Slug] : undefined;
 }

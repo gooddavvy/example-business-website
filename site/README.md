@@ -19,7 +19,11 @@ npm run lint
 npm run build
 ```
 
-For production, run `npm run start` after a successful build. Do not run a production build while a dev server uses the same `.next` directory.
+`npm run build` exports all pages and assets into `site/out/`. Serve this directory with a static host for production; `next start` does not serve static exports. Avoid building while a development server uses the same build directory.
+
+## Hosting
+
+ChatGPT Sites hosts this export. The repository-root `.openai/hosting.json` records the Sites project and declares `out` as its static directory. The root build script builds this app and copies `site/out` into root `out/` for hosting. The root lint script forwards to this app. The three concept routes are exported at build time; unknown concepts resolve to the static 404 page.
 
 ## Features
 

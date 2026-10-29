@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -29,18 +30,133 @@ export function Arrow({ diagonal = false }: { diagonal?: boolean }) {
     </svg>
   );
 }
+export function Sparkle({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      viewBox="0 0 100 100"
+    >
+      <path d="M50 2v96M2 50h96M16 16l68 68M84 16 16 84" />
+    </svg>
+  );
+}
 export function Logo() {
   return (
     <>
-      <span className="logo-symbol" aria-hidden="true">
-        ✳
-      </span>
+      <Sparkle className="logo-symbol" />
       <span>
         example<span className="logo-sub">BUSINESS</span>
       </span>
     </>
   );
 }
+
+const demoNoticeKey = "example-business-demo-notice-dismissed-until";
+const demoNoticeEvent = "example-business-demo-notice-change";
+const fifteenDays = 15 * 24 * 60 * 60 * 1000;
+
+function subscribeToDemoNotice(onChange: () => void) {
+  window.addEventListener("storage", onChange);
+  window.addEventListener(demoNoticeEvent, onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener(demoNoticeEvent, onChange);
+  };
+}
+
+function getDemoNoticeSnapshot() {
+  try {
+    const storedUntil = window.localStorage.getItem(demoNoticeKey);
+    const dismissedUntil = Number(storedUntil);
+    return storedUntil === null || !Number.isFinite(dismissedUntil) || dismissedUntil <= Date.now();
+  } catch {
+    return true;
+  }
+}
+
+function getServerDemoNoticeSnapshot() {
+  return false;
+}
+
+export function DemoNotice() {
+  const storedVisible = useSyncExternalStore(
+    subscribeToDemoNotice,
+    getDemoNoticeSnapshot,
+    getServerDemoNoticeSnapshot,
+  );
+  const [dismissedWithoutStorage, setDismissedWithoutStorage] = useState(false);
+  const visible = storedVisible && !dismissedWithoutStorage;
+  const gotItRef = useRef<HTMLButtonElement>(null);
+
+  const dismiss = useCallback(() => {
+    try {
+      window.localStorage.setItem(demoNoticeKey, String(Date.now() + fifteenDays));
+      window.dispatchEvent(new Event(demoNoticeEvent));
+    } catch {
+      setDismissedWithoutStorage(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!visible) return;
+    gotItRef.current?.focus();
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") dismiss();
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [visible, dismiss]);
+
+  if (!visible) return null;
+
+  return (
+    <div
+      className="demo-notice-backdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) dismiss();
+      }}
+    >
+      <section
+        aria-labelledby="demo-notice-title"
+        aria-describedby="demo-notice-copy"
+        aria-modal="true"
+        className="demo-notice"
+        role="dialog"
+      >
+        <button
+          aria-label="Close demo notice"
+          className="demo-notice-close"
+          onClick={dismiss}
+          type="button"
+        >
+          ×
+        </button>
+        <Sparkle className="demo-notice-mark" />
+        <p className="eyebrow">A NOTE BEFORE YOU EXPLORE</p>
+        <h2 id="demo-notice-title">A demo made to show what David can build.</h2>
+        <p id="demo-notice-copy">
+          This entire website is a demo sample. Example Business and every
+          project shown are fictional concepts created to showcase what David
+          Akins can build; none are real client projects or live products. The
+          enquiry form is also a demo and does not send messages. For an actual
+          project inquiry, contact David directly at{" "}
+          <a href="mailto:david.techchamp@gmail.com">david.techchamp@gmail.com</a>.
+        </p>
+        <button
+          className="button primary demo-notice-action"
+          onClick={dismiss}
+          ref={gotItRef}
+          type="button"
+        >
+          Got it <Arrow />
+        </button>
+      </section>
+    </div>
+  );
+}
+
 const nav = [
   ["/", "Home"],
   ["/about", "About"],
@@ -252,7 +368,7 @@ const services = [
   },
   {
     number: "02",
-    icon: "✳",
+    icon: "sparkle",
     title: "Brand & experience",
     text: "Distinctive identities and intuitive interfaces. Designed to feel right, and impossible to forget.",
     tags: "Identity · UX / UI · Design systems",
@@ -272,7 +388,9 @@ export function Services() {
         <Reveal key={service.number}>
           <Link className="service-card" href="/services">
             <div className="service-card-top">
-              <span className="service-icon">{service.icon}</span>
+              <span className="service-icon">
+                {service.icon === "sparkle" ? <Sparkle /> : service.icon}
+              </span>
               <span>{service.number}</span>
             </div>
             <h3>{service.title}</h3>
@@ -400,9 +518,7 @@ export function CTA() {
           <Link className="button light" href="/contact">
             Tell us your idea <Arrow diagonal />
           </Link>
-          <span className="cta-star" aria-hidden="true">
-            ✳
-          </span>
+          <Sparkle className="cta-star" />
         </div>
       </Reveal>
     </section>

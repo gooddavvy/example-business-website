@@ -7,6 +7,7 @@ import {
   Services,
   ProjectCard,
   CTA,
+  Sparkle,
 } from "@/components/site";
 
 export default function Home() {
@@ -64,7 +65,7 @@ export default function Home() {
         <div className="wordmark">Layers</div>
         <div className="wordmark">◈ Spherule</div>
         <div className="wordmark">alt+shift</div>
-        <div className="wordmark">✳ Quotient</div>
+        <div className="wordmark"><Sparkle className="wordmark-sparkle" /> Quotient</div>
         <p>Illustrative partner brands</p>
       </div>
       <section className="section wrap">
